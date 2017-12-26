@@ -3,7 +3,7 @@ BOX_VERSION = "1710.01"
 ETCD_SERVER_COUNT = 3
 NETWORK_ADAPTER_NAME = "Microsoft KM-TEST Loopback Adapter"
 
-$etcdServerNameSuffix = "etcd"
+$etcdServerNamePrefix = "etcd"
 $domainName = "example.com"
 $ipGroup = "10.240.0"
 $etcdServersStartIp = 10
@@ -14,8 +14,8 @@ $hostsFileContent = ""
 
 for i in 1..ETCD_SERVER_COUNT
 $etcdServers << {
-    name: "#{$etcdServerNameSuffix}#{i}",
-    hostname: "#{$etcdServerNameSuffix}#{i}",
+    name: "#{$etcdServerNamePrefix}#{i}",
+    hostname: "#{$etcdServerNamePrefix}#{i}",
     ipAddress: "#{$ipGroup}.#{$etcdServersStartIp + i}"
 }
 end
@@ -157,6 +157,7 @@ Vagrant.configure("2") do |config|
       end
       box.vm.hostname = etcd[:hostname]
       box.vm.network "public_network", bridge: NETWORK_ADAPTER_NAME, ip: etcd[:ipAddress]
+      box.vm.synced_folder ".", "/vagrant", disabled: false, type: "rsync", rsync__auto: true
       box.vm.provision "shell", inline: $cmdInitialSetup
       box.vm.provision "shell", inline: $cmdEtcdCertificateSetup % {hostname: etcd[:hostname], ipAddress: etcd[:ipAddress]}
       box.vm.provision "shell", inline: $cmdEtcdSetup % {ipAddress: etcd[:ipAddress]}
